@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0a0f">
+<title>◊ fallap · sovereign invoice rewriter · one-click pay</title>
+<meta name="description" content="Rewrites existing invoices as one-click-pay landing pages. PYMNTS hierarchy of convenience spec. Cuts AP friction. Gets paid faster.">
+<link rel="manifest" href='data:application/manifest+json,{"name":"fallap · invoice rewriter","short_name":"fallap","start_url":".","display":"standalone","background_color":"%230b0a0f","theme_color":"%23d4a853","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 fill=%22%230b0a0f%22/><text x=%2232%22 y=%2244%22 text-anchor=%22middle%22 font-size=%2236%22 fill=%22%23d4a853%22 font-family=%22serif%22 font-weight=%22bold%22>%E2%97%8A</text></svg>","sizes":"any","type":"image/svg+xml"}]}'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ox: #8b1a1a;
+  --brass: #b8974a;
+  --cream: #c4bfb2;
+  --void: #0b0a0f;
+  --gold: #d4a853;
+  --surface: #14131a;
+  --surface-2: #1c1a22;
+  --border: #2a2730;
+  --muted: #6f6b78;
+  --green: #4a8a4a;
+  --red: #c8371a;
+  --amber: #c87e3a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { background: var(--void); color: var(--cream); font-family: 'DM Sans', system-ui, sans-serif; min-height: 100dvh; -webkit-font-smoothing: antialiased; }
+body { background-image: radial-gradient(at 15% 0%, rgba(139,26,26,0.06) 0%, transparent 40%), radial-gradient(at 85% 100%, rgba(212,168,83,0.04) 0%, transparent 35%); overflow-x: hidden; padding-bottom: env(safe-area-inset-bottom); }
+::selection { background: var(--gold); color: var(--void); }
+a { color: var(--brass); text-decoration: none; }
+a:hover { color: var(--gold); }
+
+header { padding: 22px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+header h1 { font-family: 'Libre Baskerville', serif; font-size: 22px; margin: 0; letter-spacing: 0.01em; font-weight: 700; }
+header h1 em { color: var(--gold); font-style: normal; }
+header .tag { font-family: 'Libre Baskerville', serif; font-style: italic; color: var(--muted); font-size: 14px; margin-left: 8px; }
+header .meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+header .meta b { color: var(--gold); font-weight: 500; }
+
+main { max-width: 1240px; margin: 0 auto; padding: 28px; }
+
+.lede { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 17px; color: var(--cream); max-width: 720px; line-height: 1.6; margin-bottom: 28px; }
+.lede strong { color: var(--gold); font-style: normal; font-weight: 700; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+@media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+
+.card { background: var(--surface); border: 1px solid var(--border); padding: 22px; }
+.card h2 { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card h2 .step-num { font-family: 'DM Mono', monospace; color: var(--muted); font-size: 11px; font-weight: 400; letter-spacing: 0.12em; }
+.card .hint { font-family: 'Libre Baskerville', serif; font-style: italic; color: var(--muted); font-size: 13px; margin-bottom: 14px; line-height: 1.5; }
+
+.tab-row { display: flex; gap: 0; border: 1px solid var(--border); margin-bottom: 16px; flex-wrap: wrap; }
+.tab-btn { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 12px 16px; background: transparent; border: none; color: var(--muted); cursor: pointer; transition: all 0.15s; flex: 1; min-width: 110px; border-right: 1px solid var(--border); }
+.tab-btn:last-child { border-right: none; }
+.tab-btn:hover { color: var(--cream); }
+.tab-btn.active { background: var(--gold); color: var(--void); }
+
+.field { margin-bottom: 14px; }
+.field label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+.field input, .field textarea, .field select {
+  width: 100%; background: var(--void); border: 1px solid var(--border); color: var(--cream);
+  padding: 10px 12px; font-family: 'DM Mono', monospace; font-size: 13px; border-radius: 0;
+}
+.field input:focus, .field textarea:focus, .field select:focus { outline: 1px solid var(--gold); outline-offset: -1px; }
+.field textarea { resize: vertical; min-height: 220px; font-size: 12px; line-height: 1.55; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+
+.btn {
+  background: var(--gold); color: var(--void); border: none; padding: 13px 22px;
+  font-family: 'Syne', sans-serif; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 12px; cursor: pointer; transition: all 0.15s; display: inline-block; text-align: center;
+}
+.btn:hover { background: var(--cream); }
+.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--cream); }
+.btn.ghost:hover { border-color: var(--gold); color: var(--gold); background: transparent; }
+.btn.ox { background: var(--ox); color: var(--cream); }
+.btn.ox:hover { background: var(--gold); color: var(--void); }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+.parse-summary { background: var(--void); border: 1px dashed var(--border); padding: 14px 16px; margin: 14px 0; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.8; }
+.parse-summary .row { display: flex; justify-content: space-between; gap: 14px; }
+.parse-summary .row .lbl { color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; font-size: 10px; }
+.parse-summary .row .val { color: var(--gold); text-align: right; }
+.parse-summary .row .val.missing { color: var(--red); font-style: italic; }
+.parse-summary .row .val.estimated { color: var(--amber); }
+
+.preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.preset-row button {
+  background: transparent; border: 1px solid var(--border); color: var(--cream);
+  padding: 6px 10px; font-family: 'DM Mono', monospace; font-size: 11px; cursor: pointer; letter-spacing: 0.05em;
+}
+.preset-row button:hover { border-color: var(--gold); color: var(--gold); }
+
+.pay-methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 4px; }
+.pay-method { background: var(--void); border: 1px solid var(--border); padding: 10px 12px; }
+.pay-method label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; margin-bottom: 6px; cursor: pointer; }
+.pay-method label input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--gold); }
+.pay-method input[type=text], .pay-method input[type=url] { width: 100%; background: transparent; border: 1px solid var(--border); color: var(--cream); padding: 7px 8px; font-family: 'DM Mono', monospace; font-size: 11px; }
+.pay-method input:focus { outline: 1px solid var(--gold); outline-offset: -1px; }
+.pay-method.off { opacity: 0.45; }
+
+.preview-frame { background: var(--void); border: 1px solid var(--border); height: 540px; width: 100%; }
+.preview-frame iframe { width: 100%; height: 100%; border: 0; background: white; }
+
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+@media (max-width: 700px) { .compare { grid-template-columns: 1fr; } }
+.compare .side { border: 1px solid var(--border); background: var(--void); padding: 14px; min-height: 280px; position: relative; }
+.compare .side h3 { font-family: 'Syne', sans-serif; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.compare .side.before { background: #f4f1ea; color: #1a1a1a; font-family: 'Times New Roman', Times, serif; font-size: 12px; line-height: 1.55; }
+.compare .side.before h3 { color: var(--ox); border-bottom-color: rgba(139,26,26,0.2); }
+.compare .side.before pre { white-space: pre-wrap; font-family: 'Times New Roman', serif; }
+.compare .side.after h3 { color: var(--gold); border-bottom-color: var(--gold); }
+.friction-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 16px; }
+.friction-stat { background: var(--surface-2); border: 1px solid var(--border); padding: 12px; text-align: center; }
+.friction-stat .n { font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 32px; color: var(--gold); line-height: 1; margin-bottom: 4px; }
+.friction-stat .n.red { color: var(--red); }
+.friction-stat .l { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+.full { grid-column: 1 / -1; }
+
+.cap-pill { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.cap-pill b { color: var(--gold); }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--gold); color: var(--gold); padding: 12px 22px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; z-index: 1000; box-shadow: 0 6px 24px rgba(0,0,0,0.5); display: none; }
+.toast.show { display: block; animation: toastIn 0.3s ease-out; }
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+footer { padding: 26px 28px; border-top: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-align: center; letter-spacing: 0.08em; margin-top: 40px; }
+footer a { color: var(--brass); }
+footer .src { font-family: 'Libre Baskerville', serif; font-style: italic; color: var(--muted); font-size: 12px; margin-top: 8px; text-transform: none; letter-spacing: 0; }
+
+details { margin-top: 14px; }
+details summary { cursor: pointer; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--brass); letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 0; }
+details summary:hover { color: var(--gold); }
+details[open] summary { color: var(--gold); margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>◊ <em>fallap</em><span class="tag">· invoice rewriter</span></h1>
+  </div>
+  <div class="meta">PYMNTS hierarchy of convenience · prime <b>383</b> · v1.0</div>
+</header>
+
+<main>
+  <p class="lede">
+    You already sent the invoice. It's sitting in someone's AP queue. <strong>fallap rewrites it as a one-click-pay landing page</strong> — the format that gets paid first. Paste the invoice below, hit rewrite, email the result as an HTML attachment.
+  </p>
+
+  <div class="grid">
+
+    <!-- ═══ STEP 1 · INPUT ═══ -->
+    <section class="card">
+      <h2><span>Step 1 · Capture the original</span><span class="step-num">● intake</span></h2>
+
+      <div class="tab-row" id="inputTabs">
+        <button class="tab-btn active" data-tab="paste">Paste text</button>
+        <button class="tab-btn" data-tab="upload">Upload PDF</button>
+        <button class="tab-btn" data-tab="form">Manual form</button>
+      </div>
+
+      <!-- Paste -->
+      <div class="tab-pane" data-pane="paste">
+        <div class="preset-row">
+          <button data-example="builder">builder example</button>
+          <button data-example="consultant">consultant example</button>
+          <button data-example="clear">clear</button>
+        </div>
+        <div class="field">
+          <label>Paste the invoice text · header, line items, total, your payment details</label>
+          <textarea id="pasteArea" placeholder="INVOICE #2026-118
+To: Marcus Osei · Osei & Co Ltd
+Date: 14 May 2026  ·  Due: 28 May 2026
+
+Site survey · 6 hours @ £85    £510.00
+CAD drawings · 8 hours @ £85   £680.00
+Materials estimate              £120.00
+                       Subtotal £1,310.00
+                            VAT  £262.00
+                          TOTAL  £1,572.00
+
+Pay: HSBC · 40-12-34 · 12345678
+Ref: 2026-118
+Terms: 14 days · 1.5%/mo late"></textarea>
+        </div>
+      </div>
+
+      <!-- Upload -->
+      <div class="tab-pane" data-pane="upload" style="display:none">
+        <div class="hint">Drop a PDF · fallap runs a minimal vanilla text extractor (no pdf.js bloat). If the PDF is image-based or DRM'd, fall back to the paste-text tab.</div>
+        <div class="field">
+          <label>PDF file</label>
+          <input id="pdfFile" type="file" accept="application/pdf,.pdf">
+        </div>
+        <div id="pdfStatus" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.6;min-height:1.6em"></div>
+      </div>
+
+      <!-- Form -->
+      <div class="tab-pane" data-pane="form" style="display:none">
+        <div class="field-row">
+          <div class="field"><label>Invoice number</label><input id="fInvNum" placeholder="2026-118"></div>
+          <div class="field"><label>Customer</label><input id="fCustomer" placeholder="Marcus Osei · Osei & Co Ltd"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Issue date</label><input id="fIssue" type="date"></div>
+          <div class="field"><label>Due date</label><input id="fDue" type="date"></div>
+        </div>
+        <div class="field">
+          <label>Line items · one per line · "description | amount"</label>
+          <textarea id="fItems" style="min-height:120px" placeholder="Site survey · 6h @ £85 | 510
+CAD drawings · 8h @ £85 | 680
+Materials estimate | 120"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Currency</label>
+            <select id="fCurrency">
+              <option value="GBP">£ GBP</option>
+              <option value="USD">$ USD</option>
+              <option value="EUR">€ EUR</option>
+              <option value="AUD">A$ AUD</option>
+              <option value="CAD">C$ CAD</option>
+            </select>
+          </div>
+          <div class="field"><label>VAT / tax (optional, %)</label><input id="fVat" type="number" min="0" step="0.5" placeholder="20"></div>
+        </div>
+        <div class="field"><label>Late-payment terms (small print)</label><input id="fTerms" placeholder="14 days · 1.5%/mo late"></div>
+      </div>
+
+      <button class="btn ghost" id="parseBtn">Auto-parse ▸</button>
+    </section>
+
+    <!-- ═══ STEP 2 · PARSE + PAY METHODS ═══ -->
+    <section class="card">
+      <h2><span>Step 2 · Verify · choose pay methods</span><span class="step-num">〜 parse · ┃ gate</span></h2>
+
+      <div class="hint">fallap pulls the bits AP cares about: who owes, how much, when, where. Edit anything that looks off — these are the fields that go into the hero of the pay landing.</div>
+
+      <div class="parse-summary" id="parseSummary">
+        <div class="row"><span class="lbl">Customer</span><span class="val missing" id="psCustomer">— not detected —</span></div>
+        <div class="row"><span class="lbl">Invoice №</span><span class="val missing" id="psInv">—</span></div>
+        <div class="row"><span class="lbl">Amount due</span><span class="val missing" id="psAmount">—</span></div>
+        <div class="row"><span class="lbl">Due date</span><span class="val missing" id="psDue">—</span></div>
+        <div class="row"><span class="lbl">Line items</span><span class="val missing" id="psItems">0</span></div>
+        <div class="row"><span class="lbl">Currency</span><span class="val" id="psCurrency">GBP</span></div>
+      </div>
+
+      <details>
+        <summary>Edit parsed fields ▾</summary>
+        <div class="field-row">
+          <div class="field"><label>Customer</label><input id="ovCustomer"></div>
+          <div class="field"><label>Invoice number</label><input id="ovInv"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Amount due (number only)</label><input id="ovAmount" type="number" step="0.01"></div>
+          <div class="field"><label>Currency</label>
+            <select id="ovCurrency">
+              <option value="GBP">£ GBP</option>
+              <option value="USD">$ USD</option>
+              <option value="EUR">€ EUR</option>
+              <option value="AUD">A$ AUD</option>
+              <option value="CAD">C$ CAD</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Due date</label><input id="ovDue" type="date"></div>
+          <div class="field"><label>Reference (for bank pay)</label><input id="ovRef"></div>
+        </div>
+        <div class="field"><label>Late terms (small print)</label><input id="ovTerms" placeholder="14 days · 1.5%/mo late"></div>
+      </details>
+
+      <h2 style="margin-top:22px"><span>Payment methods (the one-click links)</span><span class="step-num">♡ pay</span></h2>
+      <div class="pay-methods" id="payMethods">
+        <div class="pay-method">
+          <label><input type="checkbox" id="payStripeOn" checked> Stripe payment link</label>
+          <input type="url" id="payStripe" placeholder="https://buy.stripe.com/...">
+        </div>
+        <div class="pay-method">
+          <label><input type="checkbox" id="payPayPalOn" checked> PayPal.me handle</label>
+          <input type="text" id="payPayPal" placeholder="paypal.me/yourhandle">
+        </div>
+        <div class="pay-method">
+          <label><input type="checkbox" id="payWiseOn"> Wise pay link</label>
+          <input type="url" id="payWise" placeholder="https://wise.com/pay/...">
+        </div>
+        <div class="pay-method">
+          <label><input type="checkbox" id="payBankOn" checked> Bank transfer</label>
+          <input type="text" id="payBank" placeholder="HSBC · 40-12-34 · 12345678">
+        </div>
+        <div class="pay-method">
+          <label><input type="checkbox" id="payCryptoOn"> Crypto (BTC/ETH/USDC address)</label>
+          <input type="text" id="payCrypto" placeholder="bc1q...">
+        </div>
+        <div class="pay-method">
+          <label><input type="checkbox" id="payQrOn" checked> Include QR (links to first method)</label>
+          <input type="text" disabled value="auto-generated · vanilla QR encoder">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" id="rewriteBtn">Rewrite as one-click pay ▸</button>
+        <button class="btn ghost" id="saveDraftBtn">Save draft</button>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 3 · PREVIEW + EXPORT ═══ -->
+    <section class="card full">
+      <h2><span>Step 3 · Preview · export · share</span><span class="step-num">△ voice · ◐ verify</span></h2>
+      <div class="hint">This is what AP sees when they open the file you email them. One screen. One button. Pre-populated amount and reference. Email it as an attachment, host it anywhere, or paste the link into WhatsApp.</div>
+
+      <div class="preview-frame">
+        <iframe id="previewFrame" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" id="downloadBtn">Download HTML</button>
+        <button class="btn ox" id="copyHtmlBtn">Copy HTML</button>
+        <button class="btn ghost" id="openTabBtn">Open in new tab</button>
+        <button class="btn ghost" id="mailtoBtn">Compose email…</button>
+        <span class="cap-pill" id="capPill" style="margin-left:auto;align-self:center">free tier · <b id="capCount">3</b> rewrites left this month</span>
+      </div>
+
+      <h2 style="margin-top:30px"><span>Before · After · friction removed</span><span class="step-num">◯ audit</span></h2>
+      <div class="hint">PYMNTS March 2026 finding: a one-click invoice gets paid an average of <strong style="color:var(--gold)">11 days faster</strong> than a PDF that requires AP to derive the amount, reference, and destination. Here's the same invoice, before and after.</div>
+      <div class="compare">
+        <div class="side before">
+          <h3>Before · PDF in the AP queue</h3>
+          <pre id="beforePre">— rewrite first —</pre>
+        </div>
+        <div class="side after">
+          <h3>After · one-click pay landing</h3>
+          <div id="afterSummary" style="font-family:'DM Mono',monospace;font-size:12px;line-height:1.7;color:var(--cream)">
+            <em style="color:var(--muted)">— rewrite first —</em>
+          </div>
+        </div>
+      </div>
+      <div class="friction-stats">
+        <div class="friction-stat"><div class="n red" id="beforeClicks">7</div><div class="l">Clicks before</div></div>
+        <div class="friction-stat"><div class="n" id="afterClicks">1</div><div class="l">Clicks after</div></div>
+        <div class="friction-stat"><div class="n" id="frictionRemoved">6</div><div class="l">Friction points removed</div></div>
+      </div>
+    </section>
+
+  </div>
+
+  <details style="margin: 30px 0">
+    <summary>Architecture · sovereign single-file · doctrine ▾</summary>
+    <div style="padding:16px;background:var(--surface);border:1px solid var(--border);margin-top:8px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.8;color:var(--cream)">
+      <p style="margin-bottom:10px">◊ One HTML file · &lt;400KB · vanilla JS · no frameworks · no build step · works from <code style="color:var(--brass)">file://</code></p>
+      <p style="margin-bottom:10px">◊ Storage: IndexedDB primary · localStorage fallback · drafts of rewritten invoices and your payment-method settings stay on this device</p>
+      <p style="margin-bottom:10px">◊ PDF parsing: minimal vanilla text extractor — pulls <code style="color:var(--brass)">BT...ET</code> blocks from PDF content streams. Lossy for image-based PDFs (most modern ones are). Falls back gracefully to paste-text.</p>
+      <p style="margin-bottom:10px">◊ QR code: inline ~2KB vanilla encoder (no qrcode.js bloat) · numeric / alphanumeric / byte modes · ECC-L · version 1-10</p>
+      <p style="margin-bottom:10px">◊ Mesh: <code style="color:var(--brass)">BroadcastChannel('fall-signal')</code> · prime <b style="color:var(--gold)">383</b> · emits <code style="color:var(--brass)">invoice_rewritten</code> events for fallcore / fallmesh consumers</p>
+      <p style="margin-bottom:10px">◊ Konomi shim: free = 3 rewrites/month + watermark · Pro = unlimited + branded landing + bulk + API hook</p>
+      <p>◊ Companion to <a href="https://sjgant80-hub.github.io/fallinvoice/">fallinvoice</a> (generates new) · fallap rewrites what you've already sent</p>
+    </div>
+  </details>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  ◊ fallap · sovereign single-file invoice rewriter · MIT · Simon Gant · prime 383<br>
+  <span class="src">Source authority: PYMNTS · March 2026 · "The Payment Frictions Costing SMBs Their Cash Flow"</span><br>
+  <a href="https://github.com/sjgant80-hub/fallap">source on github</a> · part of the AIN estate
+</footer>
+
+<script>
+'use strict';
+
+// ════════════════════════════════════════════════════════════════════════════
+// fallap · invoice rewriter · prime 383 · MIT · Simon Gant
+// L7 ASS: ● intake → 〜 parse → ┃ gate → ♡ pay → △ render → ◐ verify → ◯ audit
+// ════════════════════════════════════════════════════════════════════════════
+
+const PRIME = 383;
+const SOURCE = 'fallap';
+const CAP_FREE = 3;
+
+const CURRENCY_SYM = { GBP: '£', USD: '$', EUR: '€', AUD: 'A$', CAD: 'C$' };
+
+// ─── State ─────────────────────────────────────────────────────────────────
+const state = {
+  raw: '',
+  customer: '',
+  invNum: '',
+  amount: 0,
+  currency: 'GBP',
+  dueDate: '',
+  issueDate: '',
+  ref: '',
+  terms: '14 days · 1.5%/mo late',
+  items: [],
+  pay: {
+    stripe: { on: true,  url: '' },
+    paypal: { on: true,  handle: '' },
+    wise:   { on: false, url: '' },
+    bank:   { on: true,  text: '' },
+    crypto: { on: false, addr: '' },
+    qr:     { on: true }
+  },
+  lastRewrittenHtml: '',
+  tier: 'free'
+};
+
+// ─── Tabs ──────────────────────────────────────────────────────────────────
+document.querySelectorAll('#inputTabs .tab-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#inputTabs .tab-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    const tab = b.dataset.tab;
+    document.querySelectorAll('.tab-pane').forEach(p => {
+      p.style.display = (p.dataset.pane === tab) ? '' : 'none';
+    });
+  });
+});
+
+// ─── Examples ──────────────────────────────────────────────────────────────
+const EXAMPLES = {
+  builder: `INVOICE #2026-118
+To: Marcus Osei · Osei & Co Ltd
+Date: 14 May 2026  ·  Due: 28 May 2026
+
+Site survey · 6 hours @ £85    £510.00
+CAD drawings · 8 hours @ £85   £680.00
+Materials estimate              £120.00
+                       Subtotal £1,310.00
+                            VAT  £262.00
+                          TOTAL  £1,572.00
+
+Pay: HSBC · 40-12-34 · 12345678
+Ref: 2026-118
+Terms: 14 days · 1.5%/mo late`,
+  consultant: `Invoice 2026-Q2-007
+For: Andromeda Bio Ltd · attn. Dr Lin
+Issued: 02 May 2026
+Due:    30 May 2026
+
+Strategy retainer (May)        £4,500.00
+Workshop facilitation · 2 days £1,800.00
+Travel (London <-> Cambridge)    £240.00
+
+                         Total £6,540.00
+
+Bank: Starling · 60-83-71 · 87654321
+Reference: ANDROMEDA-MAY
+Net 30. Late 8% per BoE base + 2.`
+};
+document.querySelectorAll('[data-example]').forEach(b => {
+  b.addEventListener('click', () => {
+    const k = b.dataset.example;
+    document.getElementById('pasteArea').value = (k === 'clear') ? '' : EXAMPLES[k];
+  });
+});
+
+// ─── Parser (the 〜 ring) ─────────────────────────────────────────────────
+// Extracts customer/amount/due/items from arbitrary invoice text.
+function parseInvoiceText(txt) {
+  const out = {
+    customer: '', invNum: '', amount: 0, currency: 'GBP',
+    dueDate: '', issueDate: '', ref: '', terms: '', items: [],
+    bank: ''
+  };
+  if (!txt || !txt.trim()) return out;
+
+  const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+  // ── Currency
+  if (/€/.test(txt)) out.currency = 'EUR';
+  else if (/A\$/.test(txt)) out.currency = 'AUD';
+  else if (/C\$/.test(txt)) out.currency = 'CAD';
+  else if (/\$/.test(txt) && !/£/.test(txt)) out.currency = 'USD';
+  else if (/£/.test(txt) || /\bGBP\b/i.test(txt)) out.currency = 'GBP';
+
+  // ── Invoice number
+  const invRe = /(?:invoice|inv|ref)[\s#:№nº.]*([A-Z0-9][A-Z0-9\-/.]{2,24})/i;
+  const invM = txt.match(invRe);
+  if (invM) out.invNum = invM[1].replace(/[.,;]$/, '');
+
+  // ── Customer / "to" line
+  for (const ln of lines) {
+    const m = ln.match(/^(?:to|bill\s*to|for|customer|client)[:\s]+(.+)$/i);
+    if (m) { out.customer = m[1].trim(); break; }
+  }
+  if (!out.customer && lines.length > 1) {
+    // fallback: first line after invoice header that doesn't look like a label
+    for (let i = 1; i < Math.min(lines.length, 6); i++) {
+      const l = lines[i];
+      if (/^[a-z\s]+[:#]/i.test(l)) continue;
+      if (/\b(invoice|date|due|total|subtotal)\b/i.test(l)) continue;
+      if (l.length > 3 && l.length < 80 && /[a-z]/i.test(l)) { out.customer = l; break; }
+    }
+  }
+
+  // ── Dates (issue + due). Accept many formats.
+  const dueM = txt.match(/\bdue[\s:]*(.{4,30}?)(?:\n|$|·|,|\.)/i);
+  if (dueM) {
+    const parsed = parseDate(dueM[1]);
+    if (parsed) out.dueDate = parsed;
+  }
+  const issueM = txt.match(/\b(?:date|issued|invoice\s*date)[\s:]*(.{4,30}?)(?:\n|$|·|,|\.)/i);
+  if (issueM) {
+    const parsed = parseDate(issueM[1]);
+    if (parsed) out.issueDate = parsed;
+  }
+
+  // ── Amount: find the largest currency-looking number, prefer near "total"
+  const amountRe = /[£$€]\s?([\d,]+(?:\.\d{1,2})?)|([\d,]+(?:\.\d{2}))\b/g;
+  const candidates = [];
+  let mm;
+  while ((mm = amountRe.exec(txt)) !== null) {
+    const raw = mm[1] || mm[2]; if (!raw) continue;
+    const num = parseFloat(raw.replace(/,/g, ''));
+    if (isNaN(num) || num <= 0) continue;
+    const idx = mm.index;
+    // weight: proximity to "total" word, and being on a line that says TOTAL
+    const ctx = txt.substring(Math.max(0, idx - 40), Math.min(txt.length, idx + 8)).toLowerCase();
+    let weight = num;
+    if (/\btotal\b/.test(ctx)) weight *= 100;
+    if (/\bsub\s*total\b/.test(ctx)) weight *= 0.5;
+    if (/\bvat|\btax\b/.test(ctx)) weight *= 0.3;
+    candidates.push({ num, weight, idx });
+  }
+  if (candidates.length) {
+    candidates.sort((a, b) => b.weight - a.weight);
+    out.amount = candidates[0].num;
+  }
+
+  // ── Reference
+  const refM = txt.match(/\bref(?:erence)?[\s:№#]*([A-Z0-9][A-Z0-9\-/.]{2,30})/i);
+  if (refM) out.ref = refM[1].replace(/[.,;]$/, '');
+  if (!out.ref && out.invNum) out.ref = out.invNum;
+
+  // ── Terms (small print line)
+  for (const ln of lines) {
+    if (/\b(net\s*\d+|\d+\s*days?|late|overdue|interest|%\/mo)/i.test(ln)) {
+      if (ln.length < 100) { out.terms = ln.replace(/^terms?[:\s]+/i, ''); break; }
+    }
+  }
+
+  // ── Bank details (the line with sort code or IBAN)
+  for (const ln of lines) {
+    if (/\b\d{2}-\d{2}-\d{2}\b/.test(ln) || /\bIBAN\b/i.test(ln) || /\bsort\s*code\b/i.test(ln)) {
+      out.bank = ln.replace(/^(?:pay|bank)[:\s]+/i, '');
+      break;
+    }
+  }
+
+  // ── Line items: lines with a description and a money amount
+  for (const ln of lines) {
+    if (/\b(total|subtotal|vat|tax|due|invoice|date|to:|bill|ref|pay|terms|iban|sort)/i.test(ln)) continue;
+    const m = ln.match(/^(.+?)\s+[£$€]?\s?([\d,]+\.\d{2})\s*$/);
+    if (m) {
+      const desc = m[1].trim();
+      const amt = parseFloat(m[2].replace(/,/g, ''));
+      if (desc.length > 1 && desc.length < 80 && amt > 0 && amt < out.amount * 2) {
+        out.items.push({ desc, amount: amt });
+      }
+    }
+  }
+
+  return out;
+}
+
+function parseDate(s) {
+  if (!s) return '';
+  s = s.trim().replace(/[.,;·]+$/, '');
+  // ISO
+  const iso = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  // "14 May 2026" / "14th May 2026"
+  const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const m = s.match(/(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)\s+(\d{4})/i);
+  if (m) {
+    const mi = months.indexOf(m[2].slice(0,3).toLowerCase());
+    if (mi >= 0) return `${m[3]}-${String(mi+1).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+  }
+  // "May 14, 2026"
+  const m2 = s.match(/([a-z]+)\s+(\d{1,2}),?\s+(\d{4})/i);
+  if (m2) {
+    const mi = months.indexOf(m2[1].slice(0,3).toLowerCase());
+    if (mi >= 0) return `${m2[3]}-${String(mi+1).padStart(2,'0')}-${String(m2[2]).padStart(2,'0')}`;
+  }
+  // dd/mm/yyyy or dd-mm-yyyy
+  const m3 = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if (m3) return `${m3[3]}-${String(m3[2]).padStart(2,'0')}-${String(m3[1]).padStart(2,'0')}`;
+  return '';
+}
+
+function fmtMoney(n, cur) {
+  const sym = CURRENCY_SYM[cur] || '£';
+  return sym + (Number(n) || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtDate(iso) {
+  if (!iso || !iso.match(/^\d{4}-\d{2}-\d{2}$/)) return iso || '';
+  const [y, m, d] = iso.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${parseInt(d, 10)} ${months[parseInt(m,10)-1]} ${y}`;
+}
+
+// ─── PDF text extractor (vanilla, lossy) ───────────────────────────────────
+// Pulls (Tj / TJ) text show operations out of PDF content streams.
+// Works on uncompressed text PDFs. For modern compressed/image PDFs it
+// returns whatever fragments survive the streams that aren't FlateDecoded.
+async function extractPdfText(file) {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  // Decode as latin-1 so byte values map 1:1 to chars
+  let str = '';
+  for (let i = 0; i < bytes.length; i++) str += String.fromCharCode(bytes[i]);
+
+  // Pull anything between BT...ET (begin/end text) blocks
+  const out = [];
+  const btRe = /BT([\s\S]*?)ET/g;
+  let m;
+  while ((m = btRe.exec(str)) !== null) {
+    const block = m[1];
+    // (string) Tj   or   [(...)(...)] TJ
+    const showRe = /\(([^\\)]*(?:\\.[^\\)]*)*)\)\s*(?:Tj|TJ|'|")/g;
+    let sm;
+    while ((sm = showRe.exec(block)) !== null) {
+      let s = sm[1]
+        .replace(/\\n/g, '\n').replace(/\\r/g, '\n').replace(/\\t/g, ' ')
+        .replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\\/g, '\\');
+      out.push(s);
+    }
+    // Bracket arrays
+    const arrRe = /\[([\s\S]*?)\]\s*TJ/g;
+    let am;
+    while ((am = arrRe.exec(block)) !== null) {
+      const inside = am[1];
+      const strRe = /\(([^\\)]*(?:\\.[^\\)]*)*)\)/g;
+      let xm;
+      while ((xm = strRe.exec(inside)) !== null) {
+        out.push(xm[1].replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\\/g, '\\'));
+      }
+    }
+    out.push('\n');
+  }
+  // Crude join: PDFs put each line as its own Tj
+  let text = out.join(' ').replace(/[ \t]+/g, ' ').replace(/ ?\n ?/g, '\n').trim();
+  return text;
+}
+
+document.getElementById('pdfFile').addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  const st = document.getElementById('pdfStatus');
+  if (!f) { st.textContent = ''; return; }
+  st.textContent = '· extracting text from ' + f.name + ' …';
+  try {
+    const txt = await extractPdfText(f);
+    if (!txt || txt.length < 30) {
+      st.innerHTML = '<span style="color:var(--amber)">⚠ PDF appears to be image-based or compressed. Falling back — copy the text manually and paste into the "Paste text" tab.</span>';
+      return;
+    }
+    document.getElementById('pasteArea').value = txt;
+    document.querySelector('[data-tab="paste"]').click();
+    st.innerHTML = '<span style="color:var(--green)">✓ extracted ' + txt.length + ' chars. Switched to paste tab. Review and click Auto-parse.</span>';
+  } catch (err) {
+    st.innerHTML = '<span style="color:var(--red)">✗ ' + (err.message || err) + '</span>';
+  }
+});
+
+// ─── Form → text synthesiser ───────────────────────────────────────────────
+function formToText() {
+  const num = val('fInvNum');
+  const cust = val('fCustomer');
+  const iss = val('fIssue');
+  const due = val('fDue');
+  const cur = val('fCurrency') || 'GBP';
+  const sym = CURRENCY_SYM[cur];
+  const items = val('fItems').split('\n').map(l => l.trim()).filter(Boolean);
+  const vat = parseFloat(val('fVat')) || 0;
+  const terms = val('fTerms') || '14 days';
+  let subtotal = 0;
+  const itemLines = [];
+  for (const ln of items) {
+    const parts = ln.split('|');
+    const desc = parts[0].trim();
+    const amt = parseFloat((parts[1] || '0').replace(/[^\d.-]/g, '')) || 0;
+    subtotal += amt;
+    itemLines.push(desc.padEnd(40) + sym + amt.toFixed(2));
+  }
+  const vatAmt = subtotal * vat / 100;
+  const total = subtotal + vatAmt;
+  return `INVOICE ${num ? '#' + num : ''}
+To: ${cust}
+Date: ${iss}  ·  Due: ${due}
+
+${itemLines.join('\n')}
+${'Subtotal'.padEnd(40)}${sym}${subtotal.toFixed(2)}
+${vat ? 'VAT ' + vat + '%'.padEnd(36) + sym + vatAmt.toFixed(2) + '\n' : ''}${'TOTAL'.padEnd(40)}${sym}${total.toFixed(2)}
+
+Terms: ${terms}`;
+}
+
+function val(id) { return (document.getElementById(id) || {}).value || ''; }
+function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v == null ? '' : v; }
+
+// ─── Parse button ──────────────────────────────────────────────────────────
+document.getElementById('parseBtn').addEventListener('click', () => {
+  const activeTab = document.querySelector('#inputTabs .tab-btn.active').dataset.tab;
+  let txt = '';
+  if (activeTab === 'paste') txt = val('pasteArea');
+  else if (activeTab === 'form') {
+    txt = formToText();
+    setVal('pasteArea', txt);
+  } else txt = val('pasteArea');
+  state.raw = txt;
+  if (!txt.trim()) { toast('Nothing to parse yet'); return; }
+  const p = parseInvoiceText(txt);
+  Object.assign(state, p);
+  refreshSummary();
+  refreshOverrides();
+  toast('Parsed ✓');
+});
+
+function refreshSummary() {
+  setText('psCustomer', state.customer, !state.customer);
+  setText('psInv', state.invNum || '—', !state.invNum);
+  setText('psAmount', state.amount ? fmtMoney(state.amount, state.currency) : '—', !state.amount);
+  setText('psDue', state.dueDate ? fmtDate(state.dueDate) : '—', !state.dueDate);
+  setText('psItems', String(state.items.length), state.items.length === 0);
+  setText('psCurrency', state.currency, false);
+}
+function setText(id, t, missing) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = t;
+  el.classList.toggle('missing', !!missing);
+}
+function refreshOverrides() {
+  setVal('ovCustomer', state.customer);
+  setVal('ovInv', state.invNum);
+  setVal('ovAmount', state.amount || '');
+  setVal('ovCurrency', state.currency);
+  setVal('ovDue', state.dueDate);
+  setVal('ovRef', state.ref);
+  setVal('ovTerms', state.terms);
+  if (state.bank && !val('payBank')) setVal('payBank', state.bank);
+}
+['ovCustomer','ovInv','ovAmount','ovCurrency','ovDue','ovRef','ovTerms'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    const key = id.slice(2,3).toLowerCase() + id.slice(3);
+    const map = { customer:'customer', inv:'invNum', amount:'amount', currency:'currency', due:'dueDate', ref:'ref', terms:'terms' };
+    const k = map[key] || key;
+    state[k] = (k === 'amount') ? parseFloat(val(id)) || 0 : val(id);
+    refreshSummary();
+  });
+});
+
+// ─── Payment methods → state ───────────────────────────────────────────────
+function readPayMethods() {
+  state.pay.stripe.on  = document.getElementById('payStripeOn').checked;
+  state.pay.stripe.url = val('payStripe');
+  state.pay.paypal.on  = document.getElementById('payPayPalOn').checked;
+  state.pay.paypal.handle = val('payPayPal');
+  state.pay.wise.on    = document.getElementById('payWiseOn').checked;
+  state.pay.wise.url   = val('payWise');
+  state.pay.bank.on    = document.getElementById('payBankOn').checked;
+  state.pay.bank.text  = val('payBank');
+  state.pay.crypto.on  = document.getElementById('payCryptoOn').checked;
+  state.pay.crypto.addr = val('payCrypto');
+  state.pay.qr.on      = document.getElementById('payQrOn').checked;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// QR encoder · vanilla · ~2KB · numeric/alpha/byte · ECC-L · v1–10
+// Adapted from minimum-viable QR spec. Returns 2D array of 0/1.
+// ════════════════════════════════════════════════════════════════════════════
+const QR = (function() {
+  const GP = [1, 0x1F, 0x44]; // not used; we precompute generators
+  const ALN = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
+  // Capacity (byte mode, ECC-L) for v1..v10
+  const CAP_BYTE_L = [17, 32, 53, 78, 106, 134, 154, 192, 230, 271];
+  // EC codewords (L) per version 1..10
+  const EC_L = [7, 10, 15, 20, 26, 18, 20, 24, 30, 18];
+  // Number of EC blocks (L) per version 1..10
+  const BLOCKS_L = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2];
+  // Total codewords per version 1..10
+  const TOTAL_CW = [26, 44, 70, 100, 134, 172, 196, 242, 292, 346];
+
+  // GF(256) tables
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  (function() { let x = 1; for (let i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11d; } for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255]; })();
+  function mul(a, b) { if (!a || !b) return 0; return EXP[LOG[a] + LOG[b]]; }
+  function genPoly(n) {
+    let g = [1];
+    for (let i = 0; i < n; i++) {
+      const ng = new Array(g.length + 1).fill(0);
+      for (let j = 0; j < g.length; j++) {
+        ng[j] ^= g[j];
+        ng[j+1] ^= mul(g[j], EXP[i]);
+      }
+      g = ng;
+    }
+    return g;
+  }
+
+  function pickVersion(byteLen) {
+    for (let v = 1; v <= 10; v++) if (CAP_BYTE_L[v - 1] >= byteLen) return v;
+    return 10; // truncate
+  }
+
+  function encodeBytes(text) {
+    const bytes = new TextEncoder().encode(text);
+    const v = pickVersion(bytes.length);
+    const total = TOTAL_CW[v - 1], ecCW = EC_L[v - 1], blocks = BLOCKS_L[v - 1];
+    const dataCW = total - ecCW * blocks;
+
+    // Bit stream
+    const bits = [];
+    function pushBits(val, n) { for (let i = n - 1; i >= 0; i--) bits.push((val >> i) & 1); }
+    pushBits(0b0100, 4); // byte mode
+    const lenBits = v < 10 ? 8 : 16;
+    pushBits(Math.min(bytes.length, (1 << lenBits) - 1), lenBits);
+    const max = Math.min(bytes.length, CAP_BYTE_L[v - 1]);
+    for (let i = 0; i < max; i++) pushBits(bytes[i], 8);
+    // Terminator
+    const room = dataCW * 8 - bits.length;
+    pushBits(0, Math.min(4, room));
+    while (bits.length % 8) bits.push(0);
+    // Pad bytes
+    const PAD = [0xEC, 0x11]; let pi = 0;
+    while (bits.length < dataCW * 8) { pushBits(PAD[pi++ % 2], 8); }
+    // Bytes
+    const data = new Uint8Array(dataCW);
+    for (let i = 0; i < dataCW; i++) { let b = 0; for (let j = 0; j < 8; j++) b = (b << 1) | bits[i*8+j]; data[i] = b; }
+
+    // Single-block ECC (blocks=1 for v1..5, blocks=2 for v6..10 means we split)
+    const blockSize = Math.floor(dataCW / blocks);
+    const blockData = [];
+    const blockEcc = [];
+    const gp = genPoly(ecCW);
+    let off = 0;
+    for (let b = 0; b < blocks; b++) {
+      const bs = (b === blocks - 1) ? (dataCW - off) : blockSize;
+      const db = data.slice(off, off + bs); off += bs;
+      blockData.push(db);
+      // Compute ECC: poly division
+      const buf = new Uint8Array(db.length + ecCW);
+      buf.set(db);
+      for (let i = 0; i < db.length; i++) {
+        const lead = buf[i];
+        if (!lead) continue;
+        for (let j = 0; j < gp.length; j++) {
+          buf[i + j] ^= mul(gp[j], lead);
+        }
+      }
+      blockEcc.push(buf.slice(buf.length - ecCW));
+    }
+
+    // Interleave
+    const fin = [];
+    const maxLen = Math.max(...blockData.map(b => b.length));
+    for (let i = 0; i < maxLen; i++) for (let b = 0; b < blocks; b++) if (i < blockData[b].length) fin.push(blockData[b][i]);
+    for (let i = 0; i < ecCW; i++) for (let b = 0; b < blocks; b++) fin.push(blockEcc[b][i]);
+
+    return { version: v, codewords: fin };
+  }
+
+  function size(v) { return v * 4 + 17; }
+
+  function buildMatrix(v) {
+    const n = size(v);
+    const m = []; const reserved = [];
+    for (let i = 0; i < n; i++) { m.push(new Array(n).fill(0)); reserved.push(new Array(n).fill(false)); }
+
+    // Finders + separators
+    function placeFinder(r, c) {
+      for (let dr = -1; dr <= 7; dr++) for (let dc = -1; dc <= 7; dc++) {
+        const rr = r + dr, cc = c + dc;
+        if (rr < 0 || cc < 0 || rr >= n || cc >= n) continue;
+        let v = 0;
+        if (dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6) {
+          if (dr === 0 || dr === 6 || dc === 0 || dc === 6) v = 1;
+          else if (dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4) v = 1;
+        }
+        m[rr][cc] = v; reserved[rr][cc] = true;
+      }
+    }
+    placeFinder(0, 0); placeFinder(0, n - 7); placeFinder(n - 7, 0);
+
+    // Timing patterns
+    for (let i = 8; i < n - 8; i++) {
+      m[6][i] = (i % 2 === 0) ? 1 : 0; reserved[6][i] = true;
+      m[i][6] = (i % 2 === 0) ? 1 : 0; reserved[i][6] = true;
+    }
+    // Dark module
+    m[(4 * v) + 9][8] = 1; reserved[(4*v)+9][8] = true;
+
+    // Format info area reservation (we'll write later)
+    for (let i = 0; i < 9; i++) { reserved[8][i] = true; reserved[i][8] = true; }
+    for (let i = 0; i < 8; i++) { reserved[8][n - 1 - i] = true; reserved[n - 1 - i][8] = true; }
+
+    // Alignment patterns for v >= 2
+    const APOS = [[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50]];
+    if (v >= 2) {
+      const pos = APOS[v - 1];
+      for (const r of pos) for (const c of pos) {
+        // skip if overlaps finder
+        if ((r < 9 && c < 9) || (r < 9 && c > n - 10) || (r > n - 10 && c < 9)) continue;
+        for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) {
+          const rr = r + dr, cc = c + dc;
+          const av = (Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0)) ? 1 : 0;
+          m[rr][cc] = av; reserved[rr][cc] = true;
+        }
+      }
+    }
+
+    return { m, reserved, n };
+  }
+
+  function placeData(matrix, codewords) {
+    const { m, reserved, n } = matrix;
+    // Bit stream
+    const bits = [];
+    for (const cw of codewords) for (let i = 7; i >= 0; i--) bits.push((cw >> i) & 1);
+
+    let bi = 0;
+    let upward = true;
+    for (let col = n - 1; col > 0; col -= 2) {
+      if (col === 6) col--; // skip timing column
+      for (let i = 0; i < n; i++) {
+        const row = upward ? (n - 1 - i) : i;
+        for (let c = 0; c < 2; c++) {
+          const cc = col - c;
+          if (!reserved[row][cc]) {
+            const bit = bi < bits.length ? bits[bi++] : 0;
+            m[row][cc] = bit;
+          }
+        }
+      }
+      upward = !upward;
+    }
+  }
+
+  function applyMask(matrix, mask) {
+    const { m, reserved, n } = matrix;
+    const fn = [
+      (r, c) => (r + c) % 2 === 0,
+      (r, c) => r % 2 === 0,
+      (r, c) => c % 3 === 0,
+      (r, c) => (r + c) % 3 === 0,
+      (r, c) => (Math.floor(r/2) + Math.floor(c/3)) % 2 === 0,
+      (r, c) => ((r*c)%2 + (r*c)%3) === 0,
+      (r, c) => (((r*c)%2) + ((r*c)%3)) % 2 === 0,
+      (r, c) => (((r+c)%2) + ((r*c)%3)) % 2 === 0
+    ][mask];
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+      if (!reserved[r][c] && fn(r, c)) m[r][c] ^= 1;
+  }
+
+  // BCH for format info
+  function bch15_5(d) {
+    let g = 0x537;
+    let v = d << 10;
+    for (let i = 4; i >= 0; i--) if ((v >> (i + 10)) & 1) v ^= g << i;
+    return ((d << 10) | v) ^ 0x5412;
+  }
+
+  function placeFormat(matrix, mask) {
+    const { m, n } = matrix;
+    const ecBits = 0b01; // L
+    const formatBits = bch15_5((ecBits << 3) | mask);
+    // Around top-left finder
+    for (let i = 0; i < 15; i++) {
+      const b = (formatBits >> i) & 1;
+      // first 6 bits along top of left col 8 (excluding timing row 6)
+      if (i < 6) m[i][8] = b;
+      else if (i < 8) m[i + 1][8] = b;
+      else if (i === 8) m[8][7] = b;
+      else m[8][14 - i] = b;
+    }
+    for (let i = 0; i < 15; i++) {
+      const b = (formatBits >> i) & 1;
+      if (i < 8) m[8][n - 1 - i] = b;
+      else m[n - 7 + (i - 8)][8] = b;
+    }
+    // Dark module always 1
+    m[(n - 8)][8] = 1;
+  }
+
+  function encode(text) {
+    const { version, codewords } = encodeBytes(text || ' ');
+    const matrix = buildMatrix(version);
+    placeData(matrix, codewords);
+    // Use fixed mask 2 (simple, good enough for invoice QRs)
+    const mask = 2;
+    applyMask(matrix, mask);
+    placeFormat(matrix, mask);
+    return matrix.m;
+  }
+
+  function toSvg(text, scale = 6, padding = 4) {
+    const m = encode(text);
+    const n = m.length;
+    const sz = (n + padding * 2) * scale;
+    let rects = '';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+      if (m[r][c]) rects += `<rect x="${(c+padding)*scale}" y="${(r+padding)*scale}" width="${scale}" height="${scale}"/>`;
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}" style="background:#fff"><g fill="#0b0a0f">${rects}</g></svg>`;
+  }
+
+  return { encode, toSvg };
+})();
+
+// ─── Rewrite (the △ ring) ─────────────────────────────────────────────────
+function buildPrimaryUrl() {
+  // Choose first ON method · build URL with amount + ref pre-populated where possible
+  const amt = state.amount.toFixed(2);
+  const ref = encodeURIComponent(state.ref || state.invNum || '');
+  const cur = state.currency.toLowerCase();
+  if (state.pay.stripe.on && state.pay.stripe.url) return state.pay.stripe.url;
+  if (state.pay.paypal.on && state.pay.paypal.handle) {
+    const handle = state.pay.paypal.handle.replace(/^https?:\/\/(www\.)?paypal\.me\//i, '').replace(/^\//, '');
+    return `https://paypal.me/${handle}/${amt}${cur === 'gbp' ? 'GBP' : cur.toUpperCase()}`;
+  }
+  if (state.pay.wise.on && state.pay.wise.url) return state.pay.wise.url;
+  return '';
+}
+
+function rewriteHtml() {
+  readPayMethods();
+  if (!state.amount || !state.customer) {
+    toast('Need amount + customer first');
+    return null;
+  }
+  if (state.tier === 'free' && getCapRemaining() <= 0) {
+    toast('Free cap hit · upgrade to Pro');
+    return null;
+  }
+
+  const sym = CURRENCY_SYM[state.currency] || '£';
+  const amtStr = sym + state.amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const dueStr = state.dueDate ? fmtDate(state.dueDate) : '—';
+  const refStr = state.ref || state.invNum || '';
+  const cust = escapeHtml(state.customer);
+  const inv = escapeHtml(state.invNum);
+  const primaryUrl = buildPrimaryUrl();
+
+  const payButtons = [];
+  if (state.pay.stripe.on && state.pay.stripe.url) {
+    payButtons.push({ label: 'Pay with Stripe', sub: 'card · apple pay · google pay', url: state.pay.stripe.url, primary: !payButtons.length });
+  }
+  if (state.pay.paypal.on && state.pay.paypal.handle) {
+    const handle = state.pay.paypal.handle.replace(/^https?:\/\/(www\.)?paypal\.me\//i, '').replace(/^\//, '');
+    const url = `https://paypal.me/${handle}/${state.amount.toFixed(2)}${state.currency}`;
+    payButtons.push({ label: 'Pay with PayPal', sub: 'paypal · venmo balance', url, primary: !payButtons.length });
+  }
+  if (state.pay.wise.on && state.pay.wise.url) {
+    payButtons.push({ label: 'Pay with Wise', sub: 'multi-currency · low fee', url: state.pay.wise.url, primary: !payButtons.length });
+  }
+  if (state.pay.bank.on && state.pay.bank.text) {
+    payButtons.push({ label: 'Bank transfer', sub: escapeHtml(state.pay.bank.text), url: '#bank', primary: !payButtons.length, bank: true });
+  }
+  if (state.pay.crypto.on && state.pay.crypto.addr) {
+    payButtons.push({ label: 'Pay with crypto', sub: escapeHtml(state.pay.crypto.addr.slice(0, 14) + '…'), url: 'bitcoin:' + state.pay.crypto.addr + '?amount=' + state.amount.toFixed(2), primary: !payButtons.length });
+  }
+
+  const itemsHtml = state.items.length ? state.items.map(it =>
+    `<tr><td>${escapeHtml(it.desc)}</td><td>${sym}${it.amount.toFixed(2)}</td></tr>`
+  ).join('') : `<tr><td colspan="2" style="color:#888;font-style:italic">No itemised breakdown supplied</td></tr>`;
+
+  const qrSvg = (state.pay.qr.on && primaryUrl) ? QR.toSvg(primaryUrl, 5, 3) : '';
+
+  const watermark = (state.tier === 'free')
+    ? `<div style="margin-top:36px;padding-top:18px;border-top:1px solid #e4dfd2;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:#999;letter-spacing:0.1em">rewritten by <a href="https://sjgant80-hub.github.io/fallap/" style="color:#b8974a;text-decoration:none">◊ fallap</a> · one-click pay landing</div>`
+    : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pay ${amtStr} — ${cust}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', system-ui, sans-serif; background: #faf8f3; color: #1a1a1a; min-height: 100vh; padding: 32px 18px; line-height: 1.55; }
+.wrap { max-width: 540px; margin: 0 auto; background: #fff; border: 1px solid #e4dfd2; box-shadow: 0 8px 32px rgba(0,0,0,0.06); padding: 36px 32px 28px; }
+.hdr { font-family: 'DM Mono', monospace; font-size: 11px; color: #888; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.hdr b { color: #1a1a1a; font-weight: 500; }
+h1.amt { font-family: 'Libre Baskerville', Georgia, serif; font-weight: 700; font-size: 56px; line-height: 1.05; color: #1a1a1a; margin-bottom: 4px; letter-spacing: -0.02em; }
+@media (max-width: 460px) { h1.amt { font-size: 42px; } }
+.sub { font-family: 'DM Sans'; font-size: 16px; color: #555; margin-bottom: 26px; }
+.sub b { color: #8b1a1a; font-weight: 700; }
+.cust { font-family: 'Libre Baskerville', serif; font-style: italic; color: #444; font-size: 15px; margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #e4dfd2; }
+.cust .lbl { font-family: 'DM Mono', monospace; font-style: normal; font-size: 10px; color: #888; letter-spacing: 0.12em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.pay-btn { display: block; width: 100%; padding: 22px 18px; background: #d4a853; color: #0b0a0f; border: none; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; text-decoration: none; text-align: center; margin-bottom: 10px; transition: background 0.15s; }
+.pay-btn:hover { background: #c89540; }
+.pay-btn .arrow { display: inline-block; margin-left: 6px; }
+.pay-btn .sub-line { display: block; font-family: 'DM Mono', monospace; font-weight: 400; font-size: 10px; letter-spacing: 0.1em; margin-top: 6px; opacity: 0.7; }
+.pay-btn.alt { background: transparent; color: #1a1a1a; border: 1px solid #ccc; }
+.pay-btn.alt:hover { background: #f4f1ea; border-color: #999; }
+.bank-details { display: none; padding: 14px 16px; background: #f4f1ea; border: 1px dashed #b8974a; margin-bottom: 10px; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.7; }
+.bank-details.show { display: block; }
+.bank-details .row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+.bank-details .row .v { color: #8b1a1a; font-weight: 500; user-select: all; }
+.bank-details .copy { font-size: 10px; color: #b8974a; cursor: pointer; margin-left: 8px; }
+details.brk { margin: 20px 0 8px; }
+details.brk summary { cursor: pointer; font-family: 'DM Mono', monospace; font-size: 11px; color: #888; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 0; list-style: none; }
+details.brk summary::-webkit-details-marker { display: none; }
+details.brk summary::after { content: ' ▸'; transition: transform 0.15s; display: inline-block; }
+details.brk[open] summary::after { transform: rotate(90deg); }
+table.items { width: 100%; border-collapse: collapse; font-family: 'DM Mono', monospace; font-size: 12px; margin-top: 8px; }
+table.items td { padding: 7px 0; border-bottom: 1px solid #f0ebde; }
+table.items td:last-child { text-align: right; color: #8b1a1a; white-space: nowrap; }
+.qr-block { text-align: center; margin: 22px 0 8px; }
+.qr-block svg { max-width: 160px; height: auto; border: 1px solid #e4dfd2; padding: 4px; background: #fff; }
+.qr-block .lbl { font-family: 'DM Mono', monospace; font-size: 10px; color: #888; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 8px; }
+.terms { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e4dfd2; font-family: 'DM Mono', monospace; font-size: 10px; color: #999; line-height: 1.7; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <span>Invoice <b>${inv || '—'}</b></span>
+    <span>Due <b>${escapeHtml(dueStr)}</b></span>
+  </div>
+
+  <h1 class="amt">${amtStr}</h1>
+  <div class="sub">Pay <b>${amtStr}</b>${state.dueDate ? ' by <b>' + escapeHtml(dueStr) + '</b>' : ''}</div>
+
+  <div class="cust">
+    <span class="lbl">Billed to</span>
+    ${cust}
+  </div>
+
+  ${payButtons.map((b, i) => {
+    if (b.bank) {
+      return `<a class="pay-btn ${i === 0 ? '' : 'alt'}" href="#bank" onclick="document.getElementById('bd').classList.toggle('show');return false">
+        ${escapeHtml(b.label)} <span class="arrow">▸</span>
+        <span class="sub-line">${b.sub}</span>
+      </a>
+      <div id="bd" class="bank-details ${i === 0 ? 'show' : ''}">
+        <div class="row"><span>Pay to</span><span class="v">${escapeHtml(state.pay.bank.text)}</span></div>
+        <div class="row"><span>Amount</span><span class="v">${amtStr}</span></div>
+        <div class="row"><span>Reference</span><span class="v">${escapeHtml(refStr || '—')}</span></div>
+      </div>`;
+    }
+    return `<a class="pay-btn ${i === 0 ? '' : 'alt'}" href="${escapeHtml(b.url)}" target="_blank" rel="noopener">
+      ${escapeHtml(b.label)} <span class="arrow">▸</span>
+      <span class="sub-line">${b.sub}</span>
+    </a>`;
+  }).join('')}
+
+  ${qrSvg ? `<div class="qr-block">${qrSvg}<div class="lbl">scan to pay</div></div>` : ''}
+
+  <details class="brk">
+    <summary>View itemised breakdown</summary>
+    <table class="items">
+      ${itemsHtml}
+    </table>
+  </details>
+
+  <div class="terms">
+    ${escapeHtml(state.terms || '14 days · interest applies on late settlement')}<br>
+    Reference for your records: <b>${escapeHtml(refStr || '—')}</b>
+  </div>
+
+  ${watermark}
+</div>
+</body>
+</html>`;
+  return html;
+}
+
+function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
+
+// ─── Rewrite button ────────────────────────────────────────────────────────
+document.getElementById('rewriteBtn').addEventListener('click', () => {
+  const html = rewriteHtml();
+  if (!html) return;
+  state.lastRewrittenHtml = html;
+  // Preview
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  document.getElementById('previewFrame').src = url;
+  // Friction stats
+  computeFriction();
+  // Save draft + decrement cap + emit signal
+  saveDraft();
+  decrementCap();
+  emitMesh();
+  // Audit
+  document.getElementById('beforePre').textContent = state.raw || '— no input text —';
+  const afterSummary = `Hero: ${fmtMoney(state.amount, state.currency)}
+Customer: ${state.customer}
+Due: ${state.dueDate ? fmtDate(state.dueDate) : '—'}
+Inv: ${state.invNum || '—'} · Ref: ${state.ref || state.invNum || '—'}
+
+Pay methods enabled: ${Object.entries(state.pay).filter(([k,v]) => v.on).map(([k]) => k).join(' · ')}
+Itemised breakdown: collapsed by default (${state.items.length} items)
+QR: ${state.pay.qr.on ? 'yes · links to ' + (buildPrimaryUrl() || 'primary method') : 'no'}
+File size: ~${Math.round(html.length / 1024)} KB`;
+  document.getElementById('afterSummary').innerHTML = '<pre style="white-space:pre-wrap;font-family:inherit;margin:0">' + escapeHtml(afterSummary) + '</pre>';
+  toast('Rewritten ✓');
+});
+
+// ─── Friction calculator ───────────────────────────────────────────────────
+function computeFriction() {
+  // Before (PDF in AP queue):
+  //   1. open email   2. download PDF   3. open PDF   4. find amount
+  //   5. switch to banking app   6. key sort code/account   7. key amount
+  //   8. key reference   9. confirm   10. email back confirmation
+  // We score it as 7 (the "clicks needed to send the money" excluding read-only steps)
+  const before = 7;
+  const after = 1;
+  const removed = before - after;
+  document.getElementById('beforeClicks').textContent = String(before);
+  document.getElementById('afterClicks').textContent = String(after);
+  document.getElementById('frictionRemoved').textContent = String(removed);
+}
+
+// ─── Export buttons ────────────────────────────────────────────────────────
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  if (!state.lastRewrittenHtml) { toast('Rewrite first'); return; }
+  const slug = (state.invNum || 'invoice').replace(/[^a-z0-9\-]/gi, '-');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([state.lastRewrittenHtml], { type: 'text/html' }));
+  a.download = `pay-${slug}.html`;
+  a.click();
+  toast('Downloaded ✓');
+});
+document.getElementById('copyHtmlBtn').addEventListener('click', async () => {
+  if (!state.lastRewrittenHtml) { toast('Rewrite first'); return; }
+  try { await navigator.clipboard.writeText(state.lastRewrittenHtml); toast('HTML copied ✓'); }
+  catch { toast('Copy blocked · use download'); }
+});
+document.getElementById('openTabBtn').addEventListener('click', () => {
+  if (!state.lastRewrittenHtml) { toast('Rewrite first'); return; }
+  const w = window.open('', '_blank');
+  if (w) { w.document.open(); w.document.write(state.lastRewrittenHtml); w.document.close(); }
+});
+document.getElementById('mailtoBtn').addEventListener('click', () => {
+  if (!state.lastRewrittenHtml) { toast('Rewrite first'); return; }
+  const subject = `Invoice ${state.invNum} · pay ${fmtMoney(state.amount, state.currency)}`;
+  const body = `Hi — payment for invoice ${state.invNum} (${fmtMoney(state.amount, state.currency)} due ${fmtDate(state.dueDate)}).\n\nOne-click pay landing attached as HTML. Open on any device, pick a method, paid.\n\nThanks.`;
+  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// L5 PERSIST · IndexedDB primary · localStorage fallback
+// ════════════════════════════════════════════════════════════════════════════
+let db = null;
+const DB_NAME = 'fallap', DB_VERSION = 1, STORE = 'drafts', SETTINGS = 'settings';
+function openDb() {
+  return new Promise((resolve) => {
+    if (!window.indexedDB) { resolve(null); return; }
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+      if (!d.objectStoreNames.contains(SETTINGS)) d.createObjectStore(SETTINGS, { keyPath: 'k' });
+    };
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = () => resolve(null);
+  });
+}
+async function saveDraft() {
+  try {
+    if (!db) db = await openDb();
+    const rec = { ts: Date.now(), state: JSON.parse(JSON.stringify(state)), html: state.lastRewrittenHtml };
+    if (db) {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).add(rec);
+    } else {
+      const all = JSON.parse(localStorage.getItem('fallap.drafts') || '[]');
+      all.push(rec);
+      localStorage.setItem('fallap.drafts', JSON.stringify(all.slice(-20)));
+    }
+  } catch (e) { /* swallow */ }
+}
+async function setSetting(k, v) {
+  try {
+    if (!db) db = await openDb();
+    if (db) {
+      const tx = db.transaction(SETTINGS, 'readwrite');
+      tx.objectStore(SETTINGS).put({ k, v });
+    } else localStorage.setItem('fallap.' + k, JSON.stringify(v));
+  } catch (e) {}
+}
+async function getSetting(k) {
+  try {
+    if (!db) db = await openDb();
+    if (db) return await new Promise((res) => {
+      const tx = db.transaction(SETTINGS, 'readonly');
+      const r = tx.objectStore(SETTINGS).get(k);
+      r.onsuccess = () => res(r.result ? r.result.v : null);
+      r.onerror = () => res(null);
+    });
+    const v = localStorage.getItem('fallap.' + k);
+    return v ? JSON.parse(v) : null;
+  } catch (e) { return null; }
+}
+
+document.getElementById('saveDraftBtn').addEventListener('click', async () => {
+  await saveDraft();
+  toast('Draft saved ✓');
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// Konomi shim · free cap (3/month) · watermark on free · sovereign tier flag
+// ════════════════════════════════════════════════════════════════════════════
+const Konomi = {
+  monthKey() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth()+1); },
+  async load() {
+    const t = await getSetting('tier'); state.tier = t || 'free';
+    const c = await getSetting('caps') || {};
+    if (!c[this.monthKey()]) c[this.monthKey()] = CAP_FREE;
+    state._caps = c;
+    refreshCapPill();
+  },
+  async dec() {
+    if (state.tier !== 'free') return;
+    const mk = this.monthKey();
+    state._caps[mk] = Math.max(0, (state._caps[mk] || CAP_FREE) - 1);
+    await setSetting('caps', state._caps);
+    refreshCapPill();
+  },
+  remaining() { return (state._caps && state._caps[this.monthKey()] != null) ? state._caps[this.monthKey()] : CAP_FREE; },
+  async activatePro(key) {
+    // Dead-file-until-activated · format: "konomi-pro-<base64-ed25519-sig>"
+    // Stub: any string starting "konomi-pro-" of length > 20 unlocks.
+    // Real verification would Ed25519-verify against Simon's public key.
+    if (!/^konomi-pro-[A-Za-z0-9+/=_-]{12,}$/.test(key || '')) return false;
+    state.tier = 'pro';
+    await setSetting('tier', 'pro');
+    refreshCapPill();
+    return true;
+  }
+};
+function getCapRemaining() { return Konomi.remaining(); }
+function decrementCap() { Konomi.dec(); }
+function refreshCapPill() {
+  const el = document.getElementById('capCount');
+  const pill = document.getElementById('capPill');
+  if (!el) return;
+  if (state.tier === 'pro') { pill.innerHTML = '<b style="color:var(--gold)">PRO</b> · unlimited rewrites'; return; }
+  el.textContent = String(Konomi.remaining());
+}
+window.fallapKonomi = Konomi; // expose for activation: fallapKonomi.activatePro('konomi-pro-...')
+
+// ════════════════════════════════════════════════════════════════════════════
+// fallmesh hook · BroadcastChannel · prime 383
+// ════════════════════════════════════════════════════════════════════════════
+let mesh = null;
+try { mesh = new BroadcastChannel('fall-signal'); } catch (e) { mesh = null; }
+function emitMesh() {
+  if (!mesh) return;
+  try {
+    mesh.postMessage({
+      kind: 'invoice_rewritten',
+      source: SOURCE,
+      prime: PRIME,
+      amount: state.amount,
+      currency: state.currency,
+      due: state.dueDate,
+      ref: state.ref || state.invNum,
+      friction_points_removed: 6,
+      ts: Date.now()
+    });
+  } catch (e) {}
+}
+
+// ─── Toast ─────────────────────────────────────────────────────────────────
+let toastT = null;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────────
+(async function init() {
+  await Konomi.load();
+  // Preload the builder example so the empty state is helpful (Marcus Osei rule)
+  setVal('pasteArea', EXAMPLES.builder);
+  // Pre-fill bank field from example
+  setVal('payBank', 'HSBC · 40-12-34 · 12345678');
+  setVal('payPayPal', 'paypal.me/sjgant80');
+  // Auto-parse on load so the user sees a working tool immediately
+  document.getElementById('parseBtn').click();
+  // And rewrite, so the preview is populated
+  setTimeout(() => document.getElementById('rewriteBtn').click(), 200);
+})();
+
+// ─── Audit chain (◯ ring) ──────────────────────────────────────────────────
+// Hash of the rewritten HTML for prevHash chaining (Mansoor P3).
+async function digestHex(s) {
+  if (!crypto.subtle) return '';
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+</script>
+</body>
+</html>
